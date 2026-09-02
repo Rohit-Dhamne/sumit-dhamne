@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panshet Dam Spillway Gate Calculator</title>
+    <style>
+        :root {
+            --primary: #004d80;
+            --primary-light: #0073b7;
+            --accent: #2e7d32;
+            --warning-bg: #fff8e1;
+            --warning-border: #ffe082;
+            --bg: #eef2f6;
+            --card-bg: #ffffff;
+            --text-main: #212529;
+            --border: #d0d7de;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 16px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: #fff;
+            padding: 20px 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .header .tech-specs {
+            margin-top: 8px;
+            font-size: 13px;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 4px;
+            margin: 10px 0 16px 0;
+            text-transform: uppercase;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(0,115,183,0.15);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            height: 38px;
+        }
+
+        .radio-group label {
+            font-weight: normal;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 13px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #00365a;
+        }
+
+        .results-panel {
+            background: #f0f7fc;
+            border: 1px solid #bce0fd;
+            border-radius: 8px;
+            padding: 18px;
+            margin-top: 22px;
+            display: none;
+        }
+
+        .results-panel h3 {
+            margin-top: 0;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .gate-visuals {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .gate-box {
+            background: white;
+            border: 2px solid #bce0fd;
+            border-radius: 8px;
+            padding: 12px 14px;
+            text-align: center;
+            min-width: 100px;
+            flex: 1;
+        }
+
+        .gate-box.active {
+            border-color: var(--accent);
+            background: #f6fff6;
+        }
+
+        .gate-box .gate-name {
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .gate-box .gate-val {
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 4px;
+            color: var(--primary);
+        }
+
+        .guardrails-box {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-top: 25px;
+            font-size: 13px;
+        }
+
+        .guardrails-box h4 {
+            margin: 0 0 8px 0;
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .guardrails-box ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #554100;
+        }
+
+        .guardrails-box li {
+            margin-bottom: 5px;
+        }
+        
+        .footer-ref {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>RESERVOIR OPERATION · SPILLWAY RELEASE</h1>
+        <div><b>Panshet Dam Gate Calculator (Discrete Table Matching)</b></div>
+        <div class="tech-specs">
+            Crest RL 631.55 m (2072.00 ft) · FRL 636.27 m (2087.50 ft) · MWL 636.72 m (RL 2089.00 ft) · TBL 639.13 m<br>
+            4 Radial Gates · Symmetrical Operation: Outer Pair (1 & 4), Inner Pair (2 & 3)
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="section-title">Inputs</div>
+        <div class="grid">
+            <div class="form-group">
+                <label for="inflow">Inflow Discharge (cusecs / ft³/s):</label>
+                <input type="number" id="inflow" placeholder="उदा. 4500" step="any">
+            </div>
+            <div class="form-group">
+                <label for="powerDischarge">Discharge through power outlet (cusecs):</label>
+                <input type="number" id="powerDischarge" value="0" step="any">
+            </div>
+            <div class="form-group">
+                <label for="resLevel">Current Reservoir Level:</label>
+                <input type="number" id="resLevel" value="636.27" step="any">
+            </div>
+            <div class="form-group">
+                <label>Reservoir Level Unit:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="levelUnit" value="m" checked onchange="convertLevelInput('m')"> Metres (RL)</label>
+                    <label><input type="radio" name="levelUnit" value="ft" onchange="convertLevelInput('ft')"> Feet (RL)</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="gateSelection">Gates to use:</label>
+                <select id="gateSelection">
+                    <option value="auto">Auto (Optimal Pair Choice)</option>
+                    <option value="outer">Only 2 (Outer: Gate 1 & 4)</option>
+                    <option value="all">All 4 (Gates 1, 2, 3, 4)</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn" onclick="calculateGateOpening()">CALCULATE GATE OPENING</button>
+
+        <!-- CALCULATOR RESULTS -->
+        <div id="resultsPanel" class="results-panel">
+            <h3>Spillway Operation Result (Closest Tabulated Values)</h3>
+            <div id="calcMetrics" style="font-size: 14px; margin-bottom: 12px; line-height: 1.6;"></div>
+            
+            <div class="gate-visuals">
+                <div class="gate-box" id="gb1">
+                    <div class="gate-name">Gate 1 (Outer)</div>
+                    <div class="gate-val" id="gv1">-</div>
+                </div>
+                <div class="gate-box" id="gb2">
+                    <div class="gate-name">Gate 2 (Inner)</div>
+                    <div class="gate-val" id="gv2">-</div>
+                </div>
+                <div class="gate-box" id="gb3">
+                    <div class="gate-name">Gate 3 (Inner)</div>
+                    <div class="gate-val" id="gv3">-</div>
+                </div>
+                <div class="gate-box" id="gb4">
+                    <div class="gate-name">Gate 4 (Outer)</div>
+                    <div class="gate-val" id="gv4">-</div>
+                </div>
+            </div>
+            <div id="stepGuidance" style="font-size: 13px; color: #333; font-weight: 500;"></div>
+        </div>
+
+        <!-- GOS SAFETY GUARDRAILS -->
+        <div class="guardrails-box">
+            <h4>⚠️ GOS Safety Guardrails (Panshet Dam)</h4>
+            <ul>
+                <li>Gates operate only in symmetric pairs -- never a single gate or three at once.</li>
+                <li>Opening order: Gate 1 & 4 (outer pair) first, then Gate 2 & 3 (inner pair) -- sequence 1‑4‑2‑3.</li>
+                <li>Closing order reverses: 3‑2‑4‑1.</li>
+                <li>No single continuous gate movement > 0.25 m (~0.82 ft); alternate outer/inner pairs in steps of ≤0.5 m until target opening or full clearance is reached.</li>
+                <li>Do not let reservoir level encroach on freeboard: MWL 636.72 m, TBL 639.13 m. FRL is 636.27 m.</li>
+                <li>Conservation storage should not be prematurely spilled during the tail end of September.</li>
+            </ul>
+        </div>
+
+        <div class="footer-ref">
+            Directly mapped to Panshet Dam single-gate rating table (RL 2073 to RL 2089 MWL 636.72 m, Depths 0.25 to 15.00 ft) without mathematical interpolation.
+        </div>
+    </div>
+</div>
+
+<script>
+    const ratingRLs = [2073, 2074, 2075, 2076, 2077, 2078, 2079, 2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089];
+    const ratingDepths = [
+        0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 2.75, 3.00, 3.25, 3.50, 3.75, 4.00,
+        4.25, 4.50, 4.75, 5.00, 5.25, 5.50, 5.75, 6.00, 6.25, 6.50, 6.75, 7.00, 7.25, 7.50, 7.75, 8.00,
+        8.25, 8.50, 8.75, 9.00, 9.25, 9.50, 9.75, 10.00, 10.25, 10.50, 10.75, 11.00, 11.25, 11.50, 11.75, 12.00,
+        12.25, 12.50, 12.75, 13.00, 13.25, 13.50, 13.75, 14.00, 14.25, 14.50, 14.75, 15.00
+    ];
+
+    const dischargeGrid = [
+        /* 0.25 */ [79.47, 95.32, 110.60, 124.30, 136.10, 146.70, 155.60, 163.80, 175.10, 184.10, 185.60, 200.50, 205.00, 220.00, 245.00, 252.18, 260.96],
+        /* 0.50 */ [148.40, 186.20, 220.30, 244.70, 269.50, 291.80, 315.88, 332.30, 351.80, 368.10, 377.40, 399.60, 424.60, 429.50, 495.00, 509.65, 527.55],
+        /* 0.75 */ [214.71, 272.60, 320.40, 347.00, 399.60, 432.50, 463.90, 493.90, 522.30, 549.30, 564.10, 595.70, 621.00, 643.60, 683.00, 703.39, 728.32],
+        /* 1.00 */ [273.60, 354.40, 419.70, 475.80, 526.70, 571.80, 613.70, 655.50, 691.10, 721.00, 761.70, 794.50, 849.00, 856.70, 977.00, 1006.44, 1042.42],
+        /* 1.25 */ [293.60, 431.20, 515.00, 586.50, 651.00, 707.50, 760.30, 812.60, 858.00, 902.00, 945.80, 986.30, 1025.00, 1064.00, 1120.00, 1154.06, 1195.70],
+        /* 1.50 */ [370.40, 502.70, 605.90, 696.30, 771.40, 841.00, 905.50, 971.20, 1023.00, 1079.00, 1130.00, 1178.00, 1225.00, 1271.00, 1352.00, 1393.50, 1444.23],
+        /* 1.75 */ [404.00, 568.40, 692.10, 796.40, 888.80, 971.00, 1046.00, 1119.00, 1185.00, 1248.00, 1311.00, 1365.00, 1477.00, 1487.00, 1598.00, 1647.52, 1708.05],
+        /* 2.00 */ [423.20, 627.90, 714.10, 880.60, 1002.00, 1098.00, 1185.00, 1269.00, 1347.00, 1422.00, 1489.00, 1556.00, 1615.00, 1681.00, 1844.00, 1901.69, 1972.21],
+        /* 2.25 */ [null, 648.00, 850.70, 991.00, 1114.00, 1225.00, 1321.00, 1416.00, 1504.00, 1586.00, 1664.00, 1738.00, 1811.00, 1881.00, 2060.00, 2125.07, 2204.61],
+        /* 2.50 */ [null, 724.70, 922.30, 1081.00, 1223.00, 1344.00, 1422.00, 1591.00, 1663.00, 1751.00, 1841.00, 1922.00, 2003.00, 2080.00, 2277.00, 2349.63, 2438.40],
+        /* 2.75 */ [null, 759.00, 988.10, 1169.00, 1323.00, 1461.00, 1584.00, 1701.00, 1811.00, 1913.00, 2011.00, 2102.00, 2190.00, 2276.00, 2490.00, 2570.21, 2668.24],
+        /* 3.00 */ [null, 777.60, 1074.00, 1248.00, 1422.00, 1574.00, 1712.00, 1841.00, 1961.00, 2065.00, 2118.00, 2283.00, 2378.00, 2473.00, 2701.00, 2788.87, 2896.26],
+        /* 3.25 */ [null, null, 1088.00, 1326.00, 1517.00, 1685.00, 1887.00, 1977.00, 2207.00, 2231.00, 2348.00, 2456.00, 2563.00, 2667.00, 2910.00, 3005.62, 3122.49],
+        /* 3.50 */ [null, null, 1144.00, 1398.00, 1609.00, 1795.00, 1955.00, 2110.00, 2252.00, 2395.00, 2513.00, 2631.00, 2747.00, 2853.00, 3115.00, 3218.40, 3344.77],
+        /* 3.75 */ [null, null, 1179.00, 1464.00, 1696.00, 1894.00, 2070.00, 2241.00, 2393.00, 2539.00, 2674.00, 2803.00, 2927.00, 3046.00, 3318.00, 3429.26, 3565.25],
+        /* 4.00 */ [null, null, 1198.00, 1523.00, 1772.00, 1984.00, 2189.00, 2368.00, 2532.00, 2688.00, 2839.00, 2975.00, 3107.00, 3234.00, 3520.00, 3639.26, 3785.02],
+        /* 4.25 */ [null, null, null, 1543.00, 1855.00, 2089.00, 2299.00, 2492.00, 2669.00, 2834.00, 2893.00, 3139.00, 3280.00, 3418.00, 3718.00, 3845.29, 4000.86],
+        /* 4.50 */ [null, null, null, 1621.00, 1924.00, 2180.00, 2407.00, 2611.00, 2801.00, 2980.00, 3152.00, 3304.00, 3497.00, 3601.00, 3916.00, 4051.49, 4217.08],
+        /* 4.75 */ [null, null, null, 1625.00, 1991.00, 2286.00, 2508.00, 2730.00, 2931.00, 3121.00, 3300.00, 3465.00, 3627.00, 3784.00, 4110.00, 4253.72, 4429.38],
+        /* 5.00 */ [null, null, null, 1673.00, 2050.00, 2347.00, 2607.00, 2844.00, 3039.00, 3160.00, 3449.00, 3631.00, 3796.00, 3961.00, 4302.00, 4454.06, 4639.91],
+        /* 5.25 */ [null, null, null, null, 2070.00, 2424.00, 2703.00, 2954.00, 3183.00, 3395.00, 3596.00, 3784.00, 3968.00, 4136.00, 4492.00, 4652.51, 4848.69],
+        /* 5.50 */ [null, null, null, null, 2147.00, 2481.00, 2794.00, 3063.00, 3303.00, 3530.00, 3741.00, 3944.00, 4129.00, 4263.00, 4680.00, 4849.08, 5055.73],
+        /* 5.75 */ [null, null, null, null, 2182.00, 2563.00, 2873.00, 3163.00, 3422.00, 3659.00, 3883.00, 4092.00, 4291.00, 4484.00, 4865.00, 5042.73, 5259.95],
+        /* 6.00 */ [null, null, null, null, 2200.00, 2622.00, 2963.00, 3263.00, 3535.00, 3786.00, 4021.00, 4244.00, 4452.00, 4696.00, 5046.00, 5232.43, 5460.28],
+        /* 6.25 */ [null, null, null, null, null, 2641.00, 3038.00, 3358.00, 3640.00, 3910.00, 4159.00, 4388.00, 4610.00, 4820.00, 5228.00, 5423.36, 5662.13],
+        /* 6.50 */ [null, null, null, null, null, 2717.00, 3111.00, 3449.00, 3754.00, 4031.00, 4291.00, 4533.00, 4767.00, 4984.00, 5403.00, 5607.23, 5856.85],
+        /* 6.75 */ [null, null, null, null, null, 2752.00, 3176.00, 3535.00, 3855.00, 4149.00, 4421.00, 4674.00, 4917.00, 5146.00, 5575.00, 5788.20, 6048.78],
+        /* 7.00 */ [null, null, null, null, null, 2771.00, 3236.00, 3616.00, 3954.00, 4262.00, 4547.00, 4816.00, 5065.00, 5309.00, 5753.00, 5975.61, 6247.69],
+        /* 7.25 */ [null, null, null, null, null, null, 3256.00, 3693.00, 4050.00, 4373.00, 4673.00, 4949.00, 5213.00, 5466.00, 5923.00, 6154.94, 6438.42],
+        /* 7.50 */ [null, null, null, null, null, null, 3332.00, 3765.00, 4139.00, 4482.00, 4793.00, 5083.00, 5358.00, 5633.00, 6091.00, 6332.41, 6627.47],
+        /* 7.75 */ [null, null, null, null, null, null, 3365.00, 3831.00, 4226.00, 4582.00, 4909.00, 5213.00, 5499.00, 5773.00, 6255.00, 6505.96, 6812.68],
+        /* 8.00 */ [null, null, null, null, null, null, 3386.00, 3891.00, 4309.00, 4681.00, 5053.00, 5343.00, 5641.00, 5929.00, 6421.00, 6681.82, 7000.60],
+        /* 8.25 */ [null, null, null, null, null, null, null, 3910.00, 4385.00, 4777.00, 5135.00, 5464.00, 5775.00, 6068.00, 6581.00, 6851.68, 7182.52],
+        /* 8.50 */ [null, null, null, null, null, null, null, 3988.00, 4458.00, 4868.00, 5244.00, 5584.00, 5907.00, 6213.00, 6739.00, 7019.72, 7362.82],
+        /* 8.75 */ [null, null, null, null, null, null, null, 4021.00, 4523.00, 4953.00, 5344.00, 5702.00, 6037.00, 6354.00, 6893.00, 7183.84, 7539.31],
+        /* 9.00 */ [null, null, null, null, null, null, null, 4041.00, 4582.00, 5035.00, 5443.00, 5819.00, 6163.00, 6494.00, 7046.00, 7347.19, 7715.31],
+        /* 9.25 */ [null, null, null, null, null, null, null, null, 4602.00, 5123.00, 5539.00, 5927.00, 6288.00, 6630.00, 7195.00, 7506.63, 7887.52],
+        /* 9.50 */ [null, null, null, null, null, null, null, null, 4680.00, 5184.00, 5630.00, 6036.00, 6407.00, 6759.00, 7340.00, 7662.19, 8055.98],
+        /* 9.75 */ [null, null, null, null, null, null, null, null, 4712.00, 5250.00, 5715.00, 6137.00, 6525.00, 6895.00, 7482.00, 7814.90, 8221.77],
+        /* 10.00 */ [null, null, null, null, null, null, null, null, 4735.00, 5310.00, 5798.00, 6237.00, 6640.00, 7021.00, 7622.00, 7965.81, 8386.02],
+        /* 10.25 */ [null, null, null, null, null, null, null, null, null, 5328.00, 5873.00, 6330.00, 6751.00, 7145.00, 7758.00, 8117.50, 8556.89],
+        /* 10.50 */ [null, null, null, null, null, null, null, null, null, 5408.00, 5946.00, 6422.00, 6851.00, 7264.00, 7891.00, 8275.20, 8744.78],
+        /* 10.75 */ [null, null, null, null, null, null, null, null, null, 5441.00, 6002.00, 6507.00, 6961.00, 7381.00, 8020.00, 8437.08, 8946.85],
+        /* 11.00 */ [null, null, null, null, null, null, null, null, null, 5480.00, 6073.00, 6554.00, 7058.00, 7408.00, 8146.00, 8603.35, 9162.34],
+        /* 11.25 */ [null, null, null, null, null, null, null, null, null, null, 6091.00, 6667.00, 7155.00, 7608.00, 8269.00, 8773.09, 9389.20],
+        /* 11.50 */ [null, null, null, null, null, null, null, null, null, null, 6169.00, 6738.00, 7246.00, 7716.00, 8389.00, 8945.33, 9625.28],
+        /* 11.75 */ [null, null, null, null, null, null, null, null, null, null, 6201.00, 6805.00, 7331.00, 7816.00, 8504.00, 9116.90, 9865.99],
+        /* 12.00 */ [null, null, null, null, null, null, null, null, null, null, 6220.00, 6858.00, 7415.00, 7914.00, 8614.00, 9286.69, 10108.87],
+        /* 12.25 */ [null, null, null, null, null, null, null, null, null, null, null, 6884.00, 7491.00, 8011.00, 8719.00, 9453.58, 10351.40],
+        /* 12.50 */ [null, null, null, null, null, null, null, null, null, null, null, 6960.00, 7563.00, 8102.00, 8817.00, 9614.22, 10588.59],
+        /* 12.75 */ [null, null, null, null, null, null, null, null, null, null, null, 6993.00, 7628.00, 8189.00, 8908.00, 9767.39, 10817.75],
+        /* 13.00 */ [null, null, null, null, null, null, null, null, null, null, null, 7013.00, 7688.00, 8269.00, 8991.00, 9910.78, 11034.95],
+        /* 13.25 */ [null, null, null, null, null, null, null, null, null, null, null, null, 7707.00, 8347.00, 9066.00, 10043.17, 11237.50],
+        /* 13.50 */ [null, null, null, null, null, null, null, null, null, null, null, null, 7785.00, 8418.00, 9133.00, 10163.40, 11422.78],
+        /* 13.75 */ [null, null, null, null, null, null, null, null, null, null, null, null, 7818.00, 8484.00, 9191.00, 10269.20, 11586.99],
+        /* 14.00 */ [null, null, null, null, null, null, null, null, null, null, null, null, 7839.00, 8545.00, 9239.00, 10358.36, 11726.46],
+        /* 14.25 */ [null, null, null, null, null, null, null, null, null, null, null, null, null, 8585.00, 9277.00, 10429.87, 11838.93],
+        /* 14.50 */ [null, null, null, null, null, null, null, null, null, null, null, null, null, 8642.00, 9305.00, 10482.82, 11922.38],
+        /* 14.75 */ [null, null, null, null, null, null, null, null, null, null, null, null, null, 8676.00, 9323.00, 10516.41, 11975.03],
+        /* 15.00 */ [null, null, null, null, null, null, null, null, null, null, null, null, null, 8694.00, 9333.00, 10532.25, 11998.00]
+    ];
+
+    function convertLevelInput(targetUnit) {
+        const val = parseFloat(document.getElementById('resLevel').value);
+        if (isNaN(val)) return;
+        if (targetUnit === 'ft') {
+            document.getElementById('resLevel').value = (val * 3.28084).toFixed(2);
+        } else {
+            document.getElementById('resLevel').value = (val / 3.28084).toFixed(2);
+        }
+    }
+
+    function getNearestRLIndex(inputRLFt) {
+        let closestIdx = 0;
+        let minDiff = Math.abs(inputRLFt - ratingRLs[0]);
+        for (let i = 1; i < ratingRLs.length; i++) {
+            let diff = Math.abs(inputRLFt - ratingRLs[i]);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIdx = i;
+            }
+        }
+        return closestIdx;
+    }
+
+    function calculateGateOpening() {
+        const inflow = parseFloat(document.getElementById('inflow').value) || 0;
+        const powerDischarge = parseFloat(document.getElementById('powerDischarge').value) || 0;
+        let resLevel = parseFloat(document.getElementById('resLevel').value);
+        const unit = document.querySelector('input[name="levelUnit"]:checked').value;
+        const gatePref = document.getElementById('gateSelection').value;
+
+        if (isNaN(resLevel)) {
+            alert("कृपया पाण्याची पातळी (Reservoir Level) अचूक टाका.");
+            return;
+        }
+
+        let inputRLFt = unit === 'm' ? resLevel * 3.28084 : resLevel;
+        let rlIdx = getNearestRLIndex(inputRLFt);
+        let selectedRL = ratingRLs[rlIdx];
+
+        let netSpillwayTarget = Math.max(0, inflow - powerDischarge);
+
+        let candidateGates = [];
+        if (gatePref === 'outer') candidateGates = [2];
+        else if (gatePref === 'all') candidateGates = [4];
+        else candidateGates = [2, 4];
+
+        let bestSolution = null;
+        let minDiff = Infinity;
+
+        for (let numGates of candidateGates) {
+            let targetPerGate = netSpillwayTarget / numGates;
+            
+            for (let dIdx = 0; dIdx < ratingDepths.length; dIdx++) {
+                let q = dischargeGrid[dIdx][rlIdx];
+                if (q !== null && q !== undefined) {
+                    let diff = Math.abs(q - targetPerGate);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        bestSolution = {
+                            gatesCount: numGates,
+                            depthFt: ratingDepths[dIdx],
+                            depthM: ratingDepths[dIdx] * 0.3048,
+                            qPerGate: q,
+                            totalSpillwayQ: q * numGates,
+                            rlUsed: selectedRL
+                        };
+                    }
+                }
+            }
+        }
+
+        if (!bestSolution) {
+            alert("या लेव्हलसाठी टेबलमध्ये डेटा उपलब्ध नाही.");
+            return;
+        }
+
+        document.getElementById('resultsPanel').style.display = 'block';
+        document.getElementById('calcMetrics').innerHTML = `
+            • <b>Target Spillway Release:</b> ${netSpillwayTarget.toFixed(2)} cusecs<br>
+            • <b>Matched Reservoir RL (Nearest in Table):</b> ${bestSolution.rlUsed} ft (${(bestSolution.rlUsed / 3.28084).toFixed(2)} m)<br>
+            • <b>Selected Table Gate Opening:</b> <b>${bestSolution.depthFt.toFixed(2)} ft (${bestSolution.depthM.toFixed(2)} m)</b><br>
+            • <b>Actual Spillway Discharge (Exact Table Value):</b> <b>${bestSolution.totalSpillwayQ.toFixed(2)} cusecs</b> (${bestSolution.qPerGate.toFixed(2)} cusecs/gate × ${bestSolution.gatesCount} gates)<br>
+            • <b>Difference (Error):</b> ${(bestSolution.totalSpillwayQ - netSpillwayTarget).toFixed(2)} cusecs
+        `;
+
+        const gb1 = document.getElementById('gb1'), gb2 = document.getElementById('gb2'), gb3 = document.getElementById('gb3'), gb4 = document.getElementById('gb4');
+        const gv1 = document.getElementById('gv1'), gv2 = document.getElementById('gv2'), gv3 = document.getElementById('gv3'), gv4 = document.getElementById('gv4');
+
+        let strOpen = `${bestSolution.depthFt.toFixed(2)} ft (${bestSolution.depthM.toFixed(2)} m)`;
+
+        if (bestSolution.gatesCount === 2) {
+            gb1.className = 'gate-box active'; gv1.innerText = strOpen;
+            gb4.className = 'gate-box active'; gv4.innerText = strOpen;
+            gb2.className = 'gate-box'; gv2.innerText = 'CLOSED';
+            gb3.className = 'gate-box'; gv3.innerText = 'CLOSED';
+            document.getElementById('stepGuidance').innerHTML = `
+                <b>GOS अनुक्रम:</b> फक्त बाहेरील जोडी (Gate 1 व 4) टेबलमधील जवळच्या व्हॅल्यूनुसार <b>${bestSolution.depthFt.toFixed(2)} ft</b> ने उघडावी.
+            `;
+        } else {
+            gb1.className = 'gate-box active'; gv1.innerText = strOpen;
+            gb2.className = 'gate-box active'; gv2.innerText = strOpen;
+            gb3.className = 'gate-box active'; gv3.innerText = strOpen;
+            gb4.className = 'gate-box active'; gv4.innerText = strOpen;
+            document.getElementById('stepGuidance').innerHTML = `
+                <b>GOS अनुक्रम:</b> सर्व ४ गेट्स टेबलमधील जवळच्या व्हॅल्यूनुसार <b>${bestSolution.depthFt.toFixed(2)} ft</b> ने उघडावेत (पद्धत: 1-4 आणि नंतर 2-3).
+            `;
+        }
+    }
+</script>
+
+</body>
+</html>
